@@ -1,21 +1,15 @@
 {
-  "name": "nft-taquito-pinata-tutorial",
+  "name": "lf-dine-backend",
   "version": "1.0.0",
-  "description": "A tutorial about using Taquito and Pinata to mint NFTs on Tezos",
-  "main": "dist/index.js",
+  "description": "LF dine backend services handling IPFS, QR code generation and redemption",
+  "main": "index.ts",
+  "type": "commonjs",
   "scripts": {
     "build": "tsc",
     "postinstall": "tsc",
     "prestart": "npm run build",
-    "start": "node dist/index.js",
-    "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"ts-node src/index.ts\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "git add . && git commit -m Heroku && git push heroku main"
-  },
-  "author": "Claude Barde",
-  "license": "ISC",
-  "engines": {
-    "node": "14.15.5"
+    "start:dev": "env-cmd -f ./config/.env.dev ts-node src/index.ts",
+    "start:prod": "env-cmd -f ./config/.env.prod ts-node src/index.js"
   },
   "dependencies": {
     "@pinata/sdk": "^2.1.0",
@@ -26,8 +20,10 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/node": "^18.11.19",
+    "env-cmd": "^10.1.0",
     "nodemon": "^2.0.20",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
