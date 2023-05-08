@@ -16,9 +16,16 @@ const pinataKeys = {
     apiSecret: process.env.PINATA_API_SECRET,
 };
 
+const contract = {
+    rpcUrl: process.env.TEZOS_RPC_URL,
+    address: process.env.TEZOS_CONTRACT_ADDRESS,
+    key: process.env.TEZOS_PK,
+}
+
 const appConfig = {
     server: serverCredentials,
     pinata: pinataKeys,
+    contract: contract,
 };
 
 export default appConfig;
