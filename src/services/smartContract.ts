@@ -1,4 +1,5 @@
 import { TezosToolkit } from '@taquito/taquito'
+import { InMemorySigner } from '@taquito/signer';
 import { Tzip16Module, tzip16 } from "@taquito/tzip16";
 import appConfig from '../configs/appConfig';
 import { ErrorType, NftData } from '../interfaces/interface';
@@ -15,14 +16,14 @@ class SmartContractServices {
             .then((contract) => {
                 logger(
                     ErrorType.info,
-                    `Initializing the views for ${contractAddress}...`
+                    `tokenId: ${tokenId}, contractAddress: ${contractAddress} | Initializing the views`
                 );
                 return contract.tzip16().metadataViews();
             })
             .then(async (views) => {
                 logger(
                     ErrorType.info,
-                    `The following view names were found in the metadata: ${Object.keys(views)}`
+                    `tokenId: ${tokenId}, contractAddress: ${contractAddress} | The following view names were found in the metadata: ${Object.keys(views)}`
                 );
                 const usage = await views.get_usage().executeView(tokenId);
                 const owner = await views.get_owner().executeView(tokenId);
@@ -34,12 +35,49 @@ class SmartContractServices {
             .catch((error) => {
                 logger(
                     ErrorType.error,
-                    `Unable to get_usage or get_owner for the following token_id: ${tokenId} from contract address: ${contractAddress}`,
+                    `tokenId: ${tokenId}, contractAddress: ${contractAddress} | Unable to get_usage or get_owner for the following`,
                     error,
                 );
                 return { usage: -1, owner: '' };
             });
         return usageCount;
+    }
+
+    public static updateTokenUsage = async (tokenId: number) => {
+        const contractAddress = appConfig.contract.address;
+        const pk = appConfig.contract.key;
+        const tezos = new TezosToolkit(appConfig.contract.rpcUrl);
+
+        tezos.setProvider({ signer: await InMemorySigner.fromSecretKey(pk) });
+
+        const usageIncrement = await tezos.contract
+            .at(contractAddress)
+            .then(async (contract) => {
+                return await contract.methods.update_usage(tokenId).send();
+            })
+            .then((op) => {
+                logger(
+                    ErrorType.info,
+                    `tokenId: ${tokenId}, contractAddress: ${contractAddress} | Waiting for ${op.hash} to be confirmed...`,
+                );
+                return op.confirmation(3).then(() => op.hash);
+            })
+            .then((hash) => {
+                logger(
+                    ErrorType.info,
+                    `tokenId: ${tokenId}, contractAddress: ${contractAddress} | Operation injected: https://ghost.tzstats.com/${hash}`,
+                );
+                return hash;
+            })
+            .catch((error) => {
+                logger(
+                    ErrorType.error,
+                    `tokenId: ${tokenId}, contractAddress: ${contractAddress} | Unable to update usage counter`,
+                    error,
+                );
+                return '';
+            });
+        return usageIncrement;
     }
 }
 

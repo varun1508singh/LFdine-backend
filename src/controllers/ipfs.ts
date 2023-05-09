@@ -21,11 +21,11 @@ class IpfsController {
                     }
                 });
             } else {
-                return res.status(500).json({ status: false, msg: "metadata were not pinned" });
+                return res.status(400).json({ status: false, msg: "metadata were not pinned" });
             }
         } catch(error) {
             logger( ErrorType.error, `metadata: ${metadata} | unable to pin metadata`, error);
-            return res.status(500).json({ status: false, msg: "metadata were not pinned" });
+            return res.status(400).json({ status: false, msg: "metadata were not pinned" });
         }
     }
 
@@ -34,7 +34,7 @@ class IpfsController {
 
         const multerReq = req as any;
         if (!multerReq.file){
-            return res.status(500).json({
+            return res.status(400).json({
                 status: false,
                 msg: "no file provided"
             });
@@ -45,7 +45,7 @@ class IpfsController {
         await pinata
             .testAuthentication()
             .catch((err: any) => {
-                return res.status(500).json(JSON.stringify(err))
+                return res.status(400).json(JSON.stringify(err))
             });
 
         const options: any = {
@@ -63,7 +63,7 @@ class IpfsController {
                 options
             );
             if (!pinnedFile.IpfsHash && pinnedFile.PinSize < 0) {
-                return res.status(500).json({
+                return res.status(400).json({
                     status: false,
                     msg: "file was not pinned"
                 });
@@ -89,7 +89,7 @@ class IpfsController {
                 }
             });
             if (!pinnedMetadata.IpfsHash && pinnedMetadata.PinSize < 0) {
-                return res.status(500).json({
+                return res.status(400).json({
                     status: false,
                     msg: "metadata were not pinned"
                 });

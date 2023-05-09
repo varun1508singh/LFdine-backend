@@ -3,7 +3,7 @@
 ## How to set up?
 
 - run `npm i`
-- run `npm run start`
+- run `npm run start:dev` (ghostnet) and `npm run start:prod` (mainnet)
 - The app should start on port `8080`
 
 ## How to set NFT metadata?
