@@ -1,41 +1,45 @@
 import { TezosToolkit } from '@taquito/taquito'
-import { InMemorySigner } from '@taquito/signer';
+import { Tzip16Module, tzip16 } from "@taquito/tzip16";
 import appConfig from '../configs/appConfig';
+import { ErrorType, NftData } from '../interfaces/interface';
+import { logger } from '../utils/logger.utils';
 
 class SmartContractServices {
-    public static checkUsageCounter = async (tokenId: string): Promise<number> => {
-        try {
-            const tezos = new TezosToolkit('https://ghostnet.ecadinfra.com');
-            tezos.contract.at('KT1H9kCFuVDCA3kCXgStentobimFVeitbq8A')
-                .then(async (contract) => {
-                    const viewResult = await contract.contractViews.get_owner('0').executeView({
-                        viewCaller: 'KT1KPDBat3prp2G81aDDLyJ38Vbq6YLYFQo8'
-                    });
-                    console.log(`The result of the view simulation is ${viewResult}.`);
-                })
-                .catch((error) => console.log(`Error: ${error} ${JSON.stringify(error, null, 2)}`));
-            // tezos.contract
-            //     .at('KT1H9kCFuVDCA3kCXgStentobimFVeitbq8A')
-            //     .then((contract) => {
-            //         return contract.views.get_usage([{ token_id: '0' }]).read();
-            //     })
-            //     .then((response) => {
-            //         console.log(response);
-            //     })
-            //     .catch((error) => {
-            //         console.log(`Error: ${error} ${JSON.stringify(error, null, 2)}`)
-            //     });
-        } catch(err) {
-            console.log(err);
-            return -1;
-        }
-    }
-
-    public static checkOwnership = async (address: string, tokenId: string): Promise<boolean> => {
+    public static onChainAuthorization = async (tokenId: number): Promise<NftData> => {
+        const contractAddress = appConfig.contract.address;
         const tezos = new TezosToolkit(appConfig.contract.rpcUrl);
-        const contract = await tezos.contract.at(appConfig.contract.address);
-        if(tokenId === '1') return true;
-        return false;
+        tezos.addExtension(new Tzip16Module());
+
+        const usageCount = await tezos.contract
+            .at(contractAddress, tzip16)
+            .then((contract) => {
+                logger(
+                    ErrorType.info,
+                    `Initializing the views for ${contractAddress}...`
+                );
+                return contract.tzip16().metadataViews();
+            })
+            .then(async (views) => {
+                logger(
+                    ErrorType.info,
+                    `The following view names were found in the metadata: ${Object.keys(views)}`
+                );
+                const usage = await views.get_usage().executeView(tokenId);
+                const owner = await views.get_owner().executeView(tokenId);
+                return {
+                    usage: usage.toNumber(),
+                    owner: owner.toString(),
+                }
+            })
+            .catch((error) => {
+                logger(
+                    ErrorType.error,
+                    `Unable to get_usage or get_owner for the following token_id: ${tokenId} from contract address: ${contractAddress}`,
+                    error,
+                );
+                return { usage: -1, owner: '' };
+            });
+        return usageCount;
     }
 }
 

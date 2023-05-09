@@ -1,32 +1,64 @@
 import { Request, Response } from "express";
 import SmartContractServices from "../services/smartContract";
+import QrCodeServices from "../services/qrCode";
+import { ErrorType, Usage, UserResponse } from "../interfaces/interface";
+import { logger } from "../utils/logger.utils";
 
 class RedemptionController {
     public static generateQrCode = async (req: Request, res: Response) => {
         const userAddress = req.body.address;
-        const nftTokenId = req.body.tokenId;
+        const nftTokenId = parseInt(req.body.tokenId);
 
-        const usageCounter = await SmartContractServices.checkUsageCounter(nftTokenId);
-        if(usageCounter > 0){
+        const nftData = await SmartContractServices.onChainAuthorization(nftTokenId);
+        if(nftData.usage === Usage.error || nftData.owner==='') {
+            logger(
+                ErrorType.error,
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to fetch NFT data`
+            );
             return res.status(500).send({
                 success: false,
-                response: `NFT has been redeemed already. Please select a different one`
+                response: UserResponse.INTERNAL_ERROR,
+            });
+        }
+        if(nftData.usage > Usage.valid){
+            logger(
+                ErrorType.error,
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched usage (${nftData.usage}) is more than ${Usage.valid}. NFT data is ${nftData}`
+            );
+            return res.status(500).send({
+                success: false,
+                response: UserResponse.USAGE_ERROR,
+            });
+        }
+        if(nftData.owner != userAddress){
+            logger(
+                ErrorType.error,
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched owner (${nftData.owner}) does not match given user address. NFT data is ${nftData}`
+            );
+            return res.status(500).send({
+                success: false,
+                response: UserResponse.OWNER_ERROR,
             });
         }
 
-        // const nftOwnership = await SmartContractServices.checkOwnership(userAddress, nftTokenId);
-        // if(!nftOwnership){
-        //     return res.status(500).send({
-        //         success: false,
-        //         response: `Unable to verify NFT please try again`
-        //     });
-        // }
-
-        // const qrCode = await QrCodeServices.generateQrCode();
-
+        const qrCode = await QrCodeServices.generateQrCode(nftData);
+        if(qrCode === ''){
+            logger(
+                ErrorType.error,
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to generate QR code. QR code is ${qrCode}`
+            );
+            return res.status(500).send({
+                success: false,
+                response: UserResponse.INTERNAL_ERROR,
+            });
+        }
+        logger(
+            ErrorType.info, 
+            `userRequest: ${userAddress}, token: ${nftTokenId} | Successfully generated QR code`
+        );
         return res.status(200).send({
             success: true,
-            response: `NFT verified`
+            response: qrCode,
         });
     }
 

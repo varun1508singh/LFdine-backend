@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { pinata } from '../index';
 import fs from "fs";
+import { ErrorType } from '../interfaces/interface';
+import { logger } from '../utils/logger.utils';
 
 class IpfsController {
     public static uploadGenericMetadata = async (req: Request, res: Response) => {
@@ -22,7 +24,7 @@ class IpfsController {
                 return res.status(500).json({ status: false, msg: "metadata were not pinned" });
             }
         } catch(error) {
-            console.log(error);
+            logger( ErrorType.error, `metadata: ${metadata} | unable to pin metadata`, error);
             return res.status(500).json({ status: false, msg: "metadata were not pinned" });
         }
     }
@@ -99,8 +101,8 @@ class IpfsController {
                     metadataHash: pinnedMetadata.IpfsHash
                 }
             });
-        } catch(err) {
-            console.error(`Pinata actions failed`, err);
+        } catch(error) {
+            logger( ErrorType.error, `options: ${options}, body: ${body}, filename: ${fileName} | Pinata actions failed`, error);
             return;
         }
     }
