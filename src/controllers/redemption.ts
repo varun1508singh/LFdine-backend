@@ -13,7 +13,7 @@ class RedemptionController {
         if(nftData.usage === Usage.error || nftData.owner==='') {
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to fetch NFT data`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to fetch NFT data. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -23,7 +23,7 @@ class RedemptionController {
         if(nftData.usage > Usage.valid){
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched usage (${nftData.usage}) is more than ${Usage.valid}. NFT data is ${nftData}`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched usage (${nftData.usage}) is more than ${Usage.valid}. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -33,7 +33,7 @@ class RedemptionController {
         if(nftData.owner != userAddress){
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched owner (${nftData.owner}) does not match given user address. NFT data is ${nftData}`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched owner (${nftData.owner}) does not match given user address. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -41,11 +41,11 @@ class RedemptionController {
             });
         }
 
-        const qrCode = await QrCodeServices.generateQrCode(nftData);
+        const qrCode = await QrCodeServices.generateQrCode(userAddress, nftTokenId);
         if(qrCode === ''){
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to generate QR code. QR code is ${qrCode}`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to generate QR code. QR code is ${qrCode}. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -54,7 +54,7 @@ class RedemptionController {
         }
         logger(
             ErrorType.info, 
-            `userRequest: ${userAddress}, token: ${nftTokenId} | Successfully generated QR code`
+            `userRequest: ${userAddress}, token: ${nftTokenId} | Successfully generated QR code. NFT data is ${JSON.stringify(nftData)}`
         );
         return res.status(200).send({
             success: true,
@@ -70,7 +70,7 @@ class RedemptionController {
         if(nftData.usage === Usage.error || nftData.owner==='') {
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to fetch NFT data`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to fetch NFT data. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -80,7 +80,7 @@ class RedemptionController {
         if(nftData.usage > Usage.valid){
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched usage (${nftData.usage}) is more than ${Usage.valid}. NFT data is ${nftData}`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched usage (${nftData.usage}) is more than ${Usage.valid}. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -90,7 +90,7 @@ class RedemptionController {
         if(nftData.owner != userAddress){
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched owner (${nftData.owner}) does not match given user address. NFT data is ${nftData}`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Fetched owner (${nftData.owner}) does not match given user address. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -102,7 +102,7 @@ class RedemptionController {
         if(updateNftUsage === ''){
             logger(
                 ErrorType.error,
-                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to increment NFT usage counter`
+                `userRequest: ${userAddress}, token: ${nftTokenId} | Unable to increment NFT usage counter. NFT data is ${JSON.stringify(nftData)}`
             );
             return res.status(400).send({
                 success: false,
@@ -112,7 +112,7 @@ class RedemptionController {
 
         logger(
             ErrorType.info, 
-            `userRequest: ${userAddress}, token: ${nftTokenId} | Successfully redeemed NFT, tx_hash ${updateNftUsage}`
+            `userRequest: ${userAddress}, token: ${nftTokenId} | Successfully redeemed NFT, tx_hash ${updateNftUsage}. NFT data is ${JSON.stringify(nftData)}`
         );
         return res.status(200).send({
             success: true,

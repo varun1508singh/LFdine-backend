@@ -9,6 +9,12 @@ import { logger } from "./utils/logger.utils";
 const app = express();
 const port = process.env.NODE_ENV === "production" ? process.env.PORT : 8080;
 
+// const corsOptions = {
+//   origin: ["],
+//   optionsSuccessStatus: 200
+// };
+app.use(cors());
+
 export const pinata = new pinataSDK(appConfig.pinata.apiKey, appConfig.pinata.apiSecret);
 
 app.use(express.json({ limit: "50mb" }));
@@ -22,9 +28,3 @@ app.listen(port, async () => {
         .then(() => logger( ErrorType.info, `Successfully connected to Pinata`))
         .catch((error: any) => logger( ErrorType.error, `Pinata connection failed`, error));
 });
-
-// const corsOptions = {
-//   origin: ["http://localhost:8082"],
-//   optionsSuccessStatus: 200
-// };
-// app.use(cors(corsOptions));

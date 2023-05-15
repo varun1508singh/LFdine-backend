@@ -24,7 +24,7 @@ class IpfsController {
                 return res.status(400).json({ status: false, msg: "metadata were not pinned" });
             }
         } catch(error) {
-            logger( ErrorType.error, `metadata: ${metadata} | unable to pin metadata`, error);
+            logger( ErrorType.error, `metadata: ${JSON.stringify(metadata)} | unable to pin metadata`, error);
             return res.status(400).json({ status: false, msg: "metadata were not pinned" });
         }
     }

@@ -30,7 +30,6 @@ class UserController {
         }
 
         const nftMetadata = await SmartContractServices.fetchNFTMetadata(userNFTs);
-        console.log(nftMetadata);
 
         return res.status(200).send({
             success: true,

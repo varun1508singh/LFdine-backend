@@ -7,8 +7,8 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const routes = Router();
 
-routes.get('/health', (_req, res) => {
-    res.send({ alive: true });
+routes.get('/', (_req, res) => {
+    res.status(200).send({ alive: true });
 });
 
 //IPFS

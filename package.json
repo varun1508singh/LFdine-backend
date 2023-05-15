@@ -6,8 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "postinstall": "tsc",
-    "prestart": "npm run build",
+    "start": "nodemon src/index.ts",
     "start:dev": "env-cmd -f ./config/.env.dev nodemon src/index.ts",
     "start:prod": "env-cmd -f ./config/.env.prod ts-node src/index.js"
   },

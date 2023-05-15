@@ -3,7 +3,11 @@ import { ErrorType, NftData } from "../interfaces/interface";
 import { logger } from "../utils/logger.utils";
 
 class QrCodeServices {
-    public static generateQrCode = async (data: NftData): Promise<String> => {
+    public static generateQrCode = async (userAddress: string, tokenId: number): Promise<String> => {
+        const data = {
+            address: userAddress,
+            tokenId: tokenId
+        }
         try {
             return await qr.toDataURL(JSON.stringify(data))
         } catch (error) {
