@@ -2,8 +2,9 @@ import { TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer';
 import { Tzip16Module, tzip16 } from "@taquito/tzip16";
 import appConfig from '../configs/appConfig';
-import { ErrorType, NftData } from '../interfaces/interface';
+import { ErrorType, NftData, TokenData } from '../interfaces/interface';
 import { logger } from '../utils/logger.utils';
+import ExternalServices from './externalServices';
 
 class SmartContractServices {
     public static onChainAuthorization = async (tokenId: number): Promise<NftData> => {
@@ -78,6 +79,43 @@ class SmartContractServices {
                 return '';
             });
         return usageIncrement;
+    }
+
+    public static fetchNFTMetadata = async (tokenData: TokenData[]): Promise<TokenData[]> => {
+        const contractAddress = appConfig.contract.address;
+        const tezos = new TezosToolkit(appConfig.contract.rpcUrl);
+        tezos.addExtension(new Tzip16Module());
+
+        const newTokenMetadata = await tezos.contract
+            .at(contractAddress, tzip16)
+            .then((contract) => {
+                logger(
+                    ErrorType.info,
+                    `contractAddress: ${contractAddress} | Initializing the views`
+                );
+                return contract.tzip16().metadataViews();
+            })
+            .then(async (views) => {
+                logger(
+                    ErrorType.info,
+                    `contractAddress: ${contractAddress} | The following view names were found in the metadata: ${Object.keys(views)}`
+                );
+                return await Promise.all(tokenData.map(async (token) => {
+                    const tokenId = parseInt(token.token.tokenId);
+                    const hash = await views.get_metadata().executeView(tokenId);
+                    token.token.metadata = Buffer.from(hash, 'hex').toString();
+                    return token;
+                }));
+            })
+            .catch((error) => {
+                logger(
+                    ErrorType.error,
+                    `tokenData: ${JSON.stringify(tokenData)}, contractAddress: ${contractAddress} | Unable to get_usage or get_owner for the following`,
+                    error,
+                );
+                return tokenData;
+            });
+        return newTokenMetadata;
     }
 }
 
